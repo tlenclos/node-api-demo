@@ -2,6 +2,7 @@ const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerJSDoc = require("swagger-jsdoc");
+const {faker} = require('@faker-js/faker');
 
 const app = express();
 const port = 3000;
@@ -9,13 +10,17 @@ const port = 3000;
 app.use(express.json());
 
 // Fausses données pour les produits
-const products = [
-  { id: 1, name: "Smartphone", price: 499.99 },
-  { id: 2, name: "Laptop", price: 999.99 },
-  { id: 3, name: "Tablette", price: 299.99 },
-  { id: 4, name: "Écouteurs sans fil", price: 79.99 },
-  { id: 5, name: "Montre connectée", price: 199.99 },
-];
+const products = Array.from({ length: 200 }, (_, id) => ({
+  id,
+  name: faker.commerce.productName(),
+  description: faker.commerce.productDescription(),
+  supplier: `Supplier ${Math.floor(id / 40) + 1}`,
+  category: faker.commerce.department(),
+  specification: faker.lorem.sentence(),
+  thumbnail: faker.image.food(60, 60),
+  price: faker.commerce.price(),
+  image: faker.image.food(),
+}));
 
 const swaggerOptions = {
   definition: {
@@ -92,6 +97,47 @@ app.get("/api/products/:id", (req, res) => {
     res.status(404).json({ message: "Produit non trouvé" });
   }
 });
+
+/**
+ * @swagger
+ * /api/checkout:
+ *   post:
+ *     summary: Effectue le checkout des produits
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               type: object
+ *               properties:
+ *                 productId:
+ *                   type: integer
+ *                 quantity:
+ *                   type: integer
+ *     responses:
+ *       200:
+ *         description: Checkout réussi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Requête invalide
+ */
+app.post("/api/checkout", (req, res) => {
+  const items = req.body;
+  if (!Array.isArray(items) || items.some(item => typeof item.productId !== 'number' || typeof item.quantity !== 'number')) {
+    return res.status(400).json({ message: "Requête invalide" });
+  }
+  // Logique de traitement du checkout ici
+  res.json({ message: "Votre panier est validé, BRAVO !!!" });
+});
+
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
