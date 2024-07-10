@@ -1,6 +1,7 @@
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerJSDoc = require("swagger-jsdoc");
 
 const app = express();
 const port = 3000;
@@ -27,30 +28,6 @@ const swaggerOptions = {
   },
   apis: ["./server.js"],
 };
-
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-/**
- * @swagger
- * /api/hello:
- *   get:
- *     summary: Retourne un message de salutation
- *     responses:
- *       200:
- *         description: Succès
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- */
-app.get("/api/hello", (req, res) => {
-  res.json({ message: "Bonjour, monde!" });
-});
 
 /**
  * @swagger
@@ -115,6 +92,20 @@ app.get("/api/products/:id", (req, res) => {
     res.status(404).json({ message: "Produit non trouvé" });
   }
 });
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+const CSS_URL =
+  "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.3.0/swagger-ui.min.css";
+app.use(
+  "/api",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCss:
+      ".swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }",
+    customCssUrl: CSS_URL,
+  })
+);
 
 app.listen(port, () => {
   console.log(`Serveur démarré sur http://localhost:${port}`);
